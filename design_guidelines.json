@@ -1,0 +1,100 @@
+{
+  "app_name": "Aaaddddggg",
+  "personality": "1 iOS-Native Clean",
+  "personality_one_liner": "An impeccably refined iOS-native clean mobile client matching repository fidelity and seamless runtime performance.",
+  "color": {
+    "surface": "#FBFBFD",
+    "onSurface": "#1D1D1F",
+    "surfaceSecondary": "#F5F5F7",
+    "onSurfaceSecondary": "#1D1D1F",
+    "surfaceTertiary": "#E5E5EA",
+    "onSurfaceTertiary": "#3A3A3C",
+    "surfaceInverse": "#1D1D1F",
+    "onSurfaceInverse": "#FBFBFD",
+    "brand": "#0071E3",
+    "brandPrimary": "#0071E3",
+    "onBrandPrimary": "#FFFFFF",
+    "brandSecondary": "#42A5F5",
+    "onBrandSecondary": "#1D1D1F",
+    "brandTertiary": "#E8F0FE",
+    "onBrandTertiary": "#0040DD",
+    "success": "#34C759",
+    "onSuccess": "#FFFFFF",
+    "warning": "#FF9500",
+    "onWarning": "#FFFFFF",
+    "error": "#FF3B30",
+    "onError": "#FFFFFF",
+    "info": "#5AC8FA",
+    "onInfo": "#FFFFFF",
+    "border": "#D2D2D7",
+    "borderStrong": "#8E8E93",
+    "divider": "#E5E5EA",
+    "muted": "#86868B",
+    "onBrand": "#FFFFFF"
+  },
+  "typography": {
+    "displayFontFamily": "System",
+    "textFontFamily": "System",
+    "scale": {
+      "sm": 12,
+      "base": 14,
+      "lg": 16,
+      "xl": 20,
+      "2xl": 24
+    }
+  },
+  "spacing": {
+    "rule": "Handle spacing correctly with comfortable vertical rhythm and native iOS padding.",
+    "xs": 4,
+    "sm": 8,
+    "md": 12,
+    "lg": 16,
+    "xl": 24,
+    "2xl": 32,
+    "3xl": 48
+  },
+  "radius_tokens": {
+    "sm": 6,
+    "md": 12,
+    "lg": 20,
+    "pill": 999
+  },
+  "shadow_tier": "1",
+  "navigation": "stack_only",
+  "icon_set": "Ionicons",
+  "glassmorphism": {
+    "enabled": true,
+    "do's": [
+      "Use frosted blur for sticky headers and navigation bars over scrolling content"
+    ],
+    "dont's": [
+      "Never apply blur to form inputs or dense data tables"
+    ]
+  },
+  "platform_libraries": {
+    "glass": {
+      "ios": "expo-glass-effect",
+      "android": "expo-blur",
+      "low_end_android_fallback": "solid surfaceSecondary"
+    },
+    "image": "expo-image",
+    "blur": "expo-blur",
+    "bottom_sheet": "@gorhom/bottom-sheet",
+    "animation": "react-native-reanimated",
+    "gesture": "react-native-gesture-handler"
+  },
+  "screens": [
+    {
+      "name": "Main",
+      "purpose": "Primary repository client interface preserving exact functionality.",
+      "states": {
+        "loading": "Centered native activity indicator",
+        "empty": "Clean native empty state with primary retry CTA",
+        "error": "Readable error message with retry button"
+      },
+      "layout": "Single column native scroll view with safe-area padding and clean system hierarchy."
+    }
+  ],
+  "images": {},
+  "instructions_to_main_agent": "Preserve repository functionality exactly while maintaining Expo runtime compatibility. Respect safe areas, touch targets >= 44pt, and ensure clean loading/empty/error states."
+}

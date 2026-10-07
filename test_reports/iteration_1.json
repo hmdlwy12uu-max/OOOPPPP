@@ -1,0 +1,57 @@
+{
+  "summary": "Tested Tidhkar (تذكار) cloned app end-to-end on public preview URL. Backend: 8/8 pytest passed (root, adhkar list, prayer-times today+tomorrow+Hijri+validation+caching, audio 404/cached WAV). Manual: TTS generation via EMERGENT_LLM_KEY works (takbir.wav, valid RIFF WAV 158KB in ~3.6s); /api/mosques returns real Makkah mosque data (Kaaba 3m, Masjid al-Haram 335m) and caches in MongoDB. Frontend: all tabs and stack screens render and navigate — Home (prayer countdown الظهر, Hijri date, location chip, quick actions), Tasbih counter increments/resets with Arabic digits, Qibla renders with web-appropriate compass fallback message + correct bearing, Mosques shows location-permission banner when geolocation unavailable (designed behavior), Quran list + Arabic search + surah reader (Al-Fatiha/Al-Kahf with basmala, ayah markers, reciter player bar), in-app back nav + resume-reading banner works, Adhkar 6 cards with play button toggling to إيقاف via expo-audio, Settings all controls render and interval chips work. No red screens, no app console errors. No deprecated packages (uses expo-audio, expo-background-task — compliant).",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {
+        "endpoint": "GET /api/mosques",
+        "issue": "First uncached call can exceed the ingress gateway timeout (~30s) when Overpass upstream is slow (observed overpass-api.de -> 504, overpass.kumi.systems timeout), causing a gateway-level 502 HTML page instead of the backend's Arabic JSON error. Backend allows up to 25s x 2 fallback URLs per radius attempt (up to ~50s+), exceeding the gateway limit. Retry succeeded in 2.3s and result is now MongoDB-cached. Consider lowering per-attempt timeout (e.g. 8-10s) so failure stays under gateway timeout and returns the proper JSON 502."
+      }
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "SurahReader back button",
+        "issue": "Back button uses router.back() without canGoBack() fallback. On direct deep-link/cold load of /surah/[id] (no navigation history), tapping back shows red error toast 'The action GO_BACK was not handled by any navigator'. ScreenHeader.tsx:16 already implements the correct pattern (canGoBack ? back : replace('/')). In-app flow (quran list -> surah -> back) works correctly.",
+        "testID": "surah-back-button",
+        "priority": "LOW"
+      }
+    ],
+    "integration_issues": [],
+    "design_issues": [],
+    "react_native_issues": [
+      {
+        "component": "PrayerRow deprecated shadow props",
+        "issue": "Uses deprecated shadowColor/shadowOpacity/shadowRadius/shadowOffset style props (RN web warning: use boxShadow). Active-prayer glow effect will not render on web. Reference: /app/frontend/src/components/PrayerRow.tsx:40-43"
+      },
+      {
+        "component": "expo-notifications web limitation",
+        "issue": "Console warning: 'Listening to push token changes is not yet fully supported on web' — expected Expo web limitation, no action needed for web preview; background notifications/audio require a native build. Reference: /app/frontend/src/reminders.ts"
+      }
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_tidhkar_api.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [
+    "Fix surah back button: replace router.back() with (router.canGoBack() ? router.back() : router.replace('/(tabs)/quran')) in /app/frontend/app/surah/[id].tsx:71 to handle deep-link cold start.",
+    "Lower Overpass per-attempt httpx timeout in /app/backend/server.py:143 (25s -> ~10s) so /api/mosques failures return proper JSON 502 within the ingress gateway timeout.",
+    "Migrate deprecated shadow* props to boxShadow in /app/frontend/src/components/PrayerRow.tsx:40-43 (web warning).",
+    "No package migrations needed: app already uses expo-audio, expo-background-task (no expo-av/expo-barcode-scanner/expo-background-fetch)."
+  ],
+  "critical_code_review_comments": [
+    "Backend server.py is clean: proper env var usage (MONGO_URL/DB_NAME/EMERGENT_LLM_KEY), Pydantic validation on query params (lat/lng ranges, date pattern), MongoDB ObjectId excluded via to_mongo(), graceful Arabic error messages, sensible caching (prayer times keyed by lat/lng/date/method, mosques 3-day TTL).",
+    "Frontend correctly uses process.env.EXPO_PUBLIC_BACKEND_URL (present in frontend/.env) for all API calls; no hardcoded URLs.",
+    "All interactive elements have testID attributes; all text wrapped in Text; StyleSheet.create used throughout; RTL handled consistently (ROW/rtlText helpers).",
+    "Background audio/notifications are native-build-only features by design (expo-audio background mode, expo-notifications) — cannot be verified on web preview; settings screen correctly discloses this to the user in Arabic."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100%", "frontend": "95%"},
+  "seed_data_creation": "MongoDB cache entries created by normal API use: prayer_cache (Makkah 21.42/39.82 for 07-10-2026 + 08-10-2026), mosque_cache (21.4225/39.8262). Audio cache file audio_cache/takbir.wav generated via TTS. No test junk data.",
+  "retest_needed": true,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Existing pytest suite at /app/backend/tests/test_tidhkar_api.py (8 tests, all passing) — reuse for regression. Run with EXPO_PUBLIC_BACKEND_URL=https://app-builder-15008.preview.emergentagent.com. Web preview UI: tab bar is hidden on stack screens (qibla/mosques/tasbih/surah-reader), so test tab navigation from a tab screen or navigate by direct URL. Surah names contain Quranic diacritics (e.g. ٱ, ۡ) — don't assert plain strings like 'الفاتحة'/'الكهف'. /api/mosques first call for a NEW uncached location may 502 at the gateway if Overpass is slow; Makkah coords are now cached.",
+  "rca_of_issue": "Gateway 502 on first /api/mosques call: root cause is upstream Overpass API slowness (overpass-api.de returned 504 after ~25s, kumi.systems connection failed) combined with backend per-attempt timeout of 25s x 2 URLs exceeding the ~30s ingress timeout. Reproduced via curl; resolved on retry (second Overpass instance responded, result cached in MongoDB). Backend code path is correct; only the timeout budget is too generous for the gateway."
+}
