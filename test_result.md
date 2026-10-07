@@ -101,3 +101,80 @@
 #====================================================================================================
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
+user_problem_statement: "تطوير تطبيق «أذكاري اليومية» كتطبيق إسلامي متكامل: القرآن بعدة قراء + تشغيل بالخلفية، أذكار الصباح/المساء بعدّادات، أدعية/أحاديث/قصص الأنبياء بالصوت (TTS بعدة أصوات)، مفضلة، بحث في الآيات، ختمة، سجل استماع، وضع ليلي/نهاري، حجم الخط، تنزيل السور للاستخدام دون اتصال، مشاركة التطبيق، تذكيرات صباح/مساء."
+
+backend:
+  - task: "GET /api/voices + GET /api/audio/{id}.wav?voice= + POST /api/tts + GET /api/tts/{voice}/{hash}.wav"
+    implemented: true
+    working: true
+    file: "backend/server.py, backend/tts_service.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "13/13 pytest pass locally. 7 default-voice adhkar pre-generated in audio_cache/."
+
+frontend:
+  - task: "Theme switch (dark/light/system) via ThemeProvider + makeStyles refactor of all screens"
+    implemented: true
+    working: "NA"
+    file: "frontend/src/theme.ts, app/(tabs)/settings.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Chips theme-chip-dark/light/system in settings."
+  - task: "Library tab + morning/evening adhkar counters + duas + hadith + stories + names + favorites + khatma + history + search + downloads screens"
+    implemented: true
+    working: "NA"
+    file: "frontend/app/(tabs)/library.tsx, app/daily/[cat].tsx, app/duas.tsx, app/hadith.tsx, app/stories.tsx, app/story/[id].tsx, app/names.tsx, app/favorites.tsx, app/khatma.tsx, app/history.tsx, app/search.tsx, app/downloads.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "All content bundled offline; narration via POST /api/tts with chosen voice; MiniPlayer global bar."
+  - task: "Surah reader: 15 reciters, font size, long-press favorite ayah, download button, mark-as-read, history, autoplay param"
+    implemented: true
+    working: "NA"
+    file: "frontend/app/surah/[id].tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Audio no longer stops on screen unmount; MiniPlayer shows elsewhere."
+  - task: "Settings: voice picker (6 voices w/ preview), daily morning/evening reminders with time chips, share app, downloads link"
+    implemented: true
+    working: "NA"
+    file: "frontend/app/(tabs)/settings.tsx, src/voice.ts, src/reminders.ts"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: ""
+
+metadata:
+  created_by: "main_agent"
+  version: "2.0"
+  test_sequence: 2
+  run_ui: true
+
+test_plan:
+  current_focus:
+    - "All new frontend screens (web preview) + backend TTS endpoints"
+  stuck_tasks: []
+  test_all: true
+  test_priority: "high_first"
+
+agent_communication:
+  - agent: "main"
+    message: "Big feature batch. Web preview: audio autoplay may be blocked by browser (NotAllowedError) — not a bug. Downloads are native-only (web shows toast). Notifications native-only."

@@ -8,11 +8,12 @@ import { StatusBar } from "expo-status-bar";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 
 import { ErrorBoundary } from "@/src/components/error-boundary";
+import { MiniPlayer } from "@/src/components/MiniPlayer";
 import { ReminderSync } from "@/src/components/ReminderSync";
 import "@/src/backgroundSync";
 import { queryClient } from "@/src/query-client";
 import { SettingsProvider } from "@/src/settings";
-import { colors } from "@/src/theme";
+import { colors as splashColors, ThemeProvider, useTheme } from "@/src/theme";
 import { ToastHost } from "@/src/toast";
 
 LogBox.ignoreAllLogs(true);
@@ -35,20 +36,32 @@ export default function RootLayout() {
     if (ready) SplashScreen.hideAsync().catch(() => {});
   }, [ready]);
 
-  if (!ready) return <View style={{ flex: 1, backgroundColor: colors.surface }} />;
+  if (!ready) return <View style={{ flex: 1, backgroundColor: splashColors.surface }} />;
 
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
-        <SettingsProvider>
-          <KeyboardProvider>
-            <StatusBar style="light" />
-            <ReminderSync />
-            <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.surface } }} />
-            <ToastHost />
-          </KeyboardProvider>
-        </SettingsProvider>
+        <ThemeProvider>
+          <SettingsProvider>
+            <KeyboardProvider>
+              <ThemedApp />
+            </KeyboardProvider>
+          </SettingsProvider>
+        </ThemeProvider>
       </QueryClientProvider>
     </ErrorBoundary>
+  );
+}
+
+function ThemedApp() {
+  const { scheme, colors } = useTheme();
+  return (
+    <View style={{ flex: 1, backgroundColor: colors.surface }}>
+      <StatusBar style={scheme === "dark" ? "light" : "dark"} />
+      <ReminderSync />
+      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.surface } }} />
+      <MiniPlayer />
+      <ToastHost />
+    </View>
   );
 }

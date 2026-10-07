@@ -7,6 +7,7 @@ from pydantic import BaseModel, Field, BeforeValidator, ConfigDict
 from typing import Annotated, Optional, Dict, List
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
+import hashlib
 import math
 import os
 import logging
@@ -16,7 +17,7 @@ from bson import ObjectId
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
-from tts_service import ADHKAR, generate_dhikr_audio  # noqa: E402
+from tts_service import ADHKAR, DEFAULT_VOICE, NARRATION_INSTRUCTIONS, VOICES, generate_dhikr_audio, generate_tts  # noqa: E402
 
 mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
@@ -89,17 +90,62 @@ async def list_adhkar():
     return [{"id": k, "text": v["text"]} for k, v in ADHKAR.items()]
 
 
+@api_router.get("/voices")
+async def list_voices():
+    return [{"id": k, "name": v["name"], "desc": v["desc"]} for k, v in VOICES.items()]
+
+
+def _voice_dir(voice: str) -> Path:
+    # Default voice keeps the historical flat layout (audio_cache/<id>.wav).
+    d = AUDIO_DIR if voice == DEFAULT_VOICE else AUDIO_DIR / voice
+    d.mkdir(parents=True, exist_ok=True)
+    return d
+
+
 @api_router.get("/audio/{dhikr_id}.wav")
-async def get_audio(dhikr_id: str):
+async def get_audio(dhikr_id: str, voice: str = DEFAULT_VOICE):
     if dhikr_id not in ADHKAR:
         raise HTTPException(404, "not found")
-    path = AUDIO_DIR / f"{dhikr_id}.wav"
+    if voice not in VOICES:
+        voice = DEFAULT_VOICE
+    path = _voice_dir(voice) / f"{dhikr_id}.wav"
     if not path.exists():
         try:
-            path.write_bytes(await generate_dhikr_audio(dhikr_id))
+            path.write_bytes(await generate_dhikr_audio(dhikr_id, voice))
         except Exception as e:
             logger.exception("tts failed: %s", e)
             raise HTTPException(502, "تعذر توليد الصوت")
+    return FileResponse(path, media_type="audio/wav", headers={"Cache-Control": "public, max-age=31536000"})
+
+
+class TtsRequest(BaseModel):
+    text: str = Field(min_length=1, max_length=4000)
+    voice: str = DEFAULT_VOICE
+
+
+@api_router.post("/tts")
+async def create_tts(req: TtsRequest):
+    """Narrate arbitrary Arabic content (duas, hadith, stories). Cached on disk by text hash."""
+    voice = req.voice if req.voice in VOICES else DEFAULT_VOICE
+    digest = hashlib.sha1(req.text.strip().encode("utf-8")).hexdigest()[:20]
+    path = _voice_dir(voice) / "narration" / f"{digest}.wav"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    if not path.exists():
+        try:
+            path.write_bytes(await generate_tts(req.text.strip(), voice, NARRATION_INSTRUCTIONS))
+        except Exception as e:
+            logger.exception("tts failed: %s", e)
+            raise HTTPException(502, "تعذر توليد الصوت")
+    return {"url": f"/api/tts/{voice}/{digest}.wav", "cached": True}
+
+
+@api_router.get("/tts/{voice}/{digest}.wav")
+async def get_tts(voice: str, digest: str):
+    if voice not in VOICES or not digest.isalnum():
+        raise HTTPException(404, "not found")
+    path = _voice_dir(voice) / "narration" / f"{digest}.wav"
+    if not path.exists():
+        raise HTTPException(404, "not found")
     return FileResponse(path, media_type="audio/wav", headers={"Cache-Control": "public, max-age=31536000"})
 
 

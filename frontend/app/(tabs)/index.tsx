@@ -17,13 +17,15 @@ import { usesNativeTabs } from "@/src/navigation";
 import { formatCountdown, PRAYERS, upcomingPrayers, useNow, usePrayerTimes, timeOf } from "@/src/prayer";
 import { useNotifPermission } from "@/src/reminders";
 import { useSettings, type LocationResult } from "@/src/settings";
-import { colors } from "@/src/theme";
+import { makeStyles, useTheme } from "@/src/theme";
 import { alpha, fonts, radius, ROW, rtlText, spacing } from "@/src/ui";
 
 const HERO =
   "https://images.unsplash.com/photo-1512632578888-169bbbc64f33?crop=entropy&cs=srgb&fm=jpg&w=1200&q=80";
 
 export default function Home() {
+  const styles = useStyles();
+  const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const bottomChrome = usesNativeTabs ? insets.bottom : 0;
   const { settings, requestLocation } = useSettings();
@@ -151,7 +153,7 @@ export default function Home() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   screen: { flex: 1, backgroundColor: colors.surface },
   hero: { height: 470, justifyContent: "space-between", overflow: "hidden" },
   topBar: {
@@ -198,4 +200,4 @@ const styles = StyleSheet.create({
   sectionHead: { flexDirection: ROW, justifyContent: "space-between", alignItems: "baseline", marginTop: spacing.sm },
   sectionTitle: { ...rtlText, fontFamily: fonts.displayBold, fontSize: 24, color: colors.onSurface },
   sectionMeta: { fontFamily: fonts.text, fontSize: 12, color: colors.muted },
-});
+}));

@@ -1,7 +1,7 @@
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import { Feather } from "@react-native-vector-icons/feather";
 
-import { colors } from "../theme";
+import { makeStyles, useTheme } from "../theme";
 import { fonts, radius, ROW, rtlText, spacing } from "../ui";
 
 type Props = {
@@ -14,6 +14,8 @@ type Props = {
 };
 
 export function InfoBanner({ icon, title, body, action, onPress, testID }: Props) {
+  const styles = useStyles();
+  const { colors } = useTheme();
   return (
     <View style={styles.card} testID={testID}>
       <View style={styles.row}>
@@ -38,7 +40,7 @@ export function InfoBanner({ icon, title, body, action, onPress, testID }: Props
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   card: {
     backgroundColor: colors.surfaceSecondary,
     borderRadius: radius.lg,
@@ -68,4 +70,4 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   btnText: { fontFamily: fonts.textBold, fontSize: 14, color: colors.onBrandPrimary },
-});
+}));

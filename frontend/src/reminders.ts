@@ -37,7 +37,17 @@ export async function setupChannels() {
     importance: Notifications.AndroidImportance.MAX,
     sound: "adhan.wav",
   });
+  await Notifications.setNotificationChannelAsync("daily", {
+    name: "أذكار الصباح والمساء",
+    importance: Notifications.AndroidImportance.HIGH,
+    sound: "salawat.wav",
+  });
 }
+
+export const parseTime = (t: string) => {
+  const [h, m] = t.split(":").map(Number);
+  return { hour: Math.min(23, Math.max(0, h || 0)), minute: Math.min(59, Math.max(0, m || 0)) };
+};
 
 export function enabledAdhkar(s: Settings): Dhikr[] {
   return ADHKAR.filter((d) => s.enabledIds.includes(d.id));
@@ -120,6 +130,21 @@ export async function syncReminders(s: Settings, prayers?: PrayerData) {
       });
       count++;
     }
+  }
+
+  // Daily morning/evening adhkar reminders (repeat every day at the chosen time).
+  const DAILY = Notifications.SchedulableTriggerInputTypes.DAILY;
+  const daily: { on: boolean; time: string; cat: "morning" | "evening"; title: string; body: string }[] = [
+    { on: s.dailyMorning, time: s.morningTime, cat: "morning", title: "أذكار الصباح ☀️", body: "ابدأ يومك بذكر الله — اضغط لقراءة أذكار الصباح" },
+    { on: s.dailyEvening, time: s.eveningTime, cat: "evening", title: "أذكار المساء 🌙", body: "لا تنسَ أذكار المساء — حصنك بإذن الله" },
+  ];
+  for (const d of daily) {
+    if (!d.on) continue;
+    await Notifications.scheduleNotificationAsync({
+      content: { title: d.title, body: d.body, sound: "salawat.wav", data: { kind: "daily", cat: d.cat, soundId: "salawat", title: d.title } },
+      trigger: { type: DAILY, ...parseTime(d.time), channelId: "daily" },
+    });
+    count++;
   }
 
   if (s.master) {

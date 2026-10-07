@@ -20,17 +20,35 @@ INSTRUCTIONS = (
 )
 
 
-async def generate_dhikr_audio(dhikr_id: str) -> bytes:
+# Voices offered to the user for reminders, duas and stories (OpenAI gpt-4o-mini-tts voices).
+VOICES = {
+    "onyx": {"name": "صوت الإمام", "desc": "عميق وخاشع (الافتراضي)"},
+    "echo": {"name": "صوت هادئ", "desc": "رجالي دافئ ومتزن"},
+    "ash": {"name": "صوت واضح", "desc": "رجالي واضح النبرة"},
+    "fable": {"name": "صوت القاصّ", "desc": "مناسب للقصص والسرد"},
+    "sage": {"name": "صوت رقيق", "desc": "ناعم ومريح"},
+    "nova": {"name": "صوت لطيف", "desc": "نسائي رقيق"},
+}
+DEFAULT_VOICE = "onyx"
+
+NARRATION_INSTRUCTIONS = (
+    "Speak in clear, eloquent Modern Standard Arabic (فصحى) with correct tashkeel and makhraj, "
+    "an authentic native Arabic accent, never foreign. Tone: calm, warm, reverent storyteller. "
+    "Pacing: measured, with natural pauses at sentence ends."
+)
+
+
+async def generate_tts(text: str, voice: str = DEFAULT_VOICE, instructions: str = INSTRUCTIONS) -> bytes:
+    if voice not in VOICES:
+        voice = DEFAULT_VOICE
     tts = OpenAITextToSpeech(api_key=os.environ["EMERGENT_LLM_KEY"])
     try:
         return await tts.generate_speech(
-            text=ADHKAR[dhikr_id]["text"],
-            model="gpt-4o-mini-tts",
-            voice="onyx",
-            instructions=INSTRUCTIONS,
-            response_format="wav",
+            text=text, model="gpt-4o-mini-tts", voice=voice, instructions=instructions, response_format="wav"
         )
     except Exception:
-        return await tts.generate_speech(
-            text=ADHKAR[dhikr_id]["text"], model="tts-1-hd", voice="onyx", response_format="wav"
-        )
+        return await tts.generate_speech(text=text, model="tts-1-hd", voice=voice, response_format="wav")
+
+
+async def generate_dhikr_audio(dhikr_id: str, voice: str = DEFAULT_VOICE) -> bytes:
+    return await generate_tts(ADHKAR[dhikr_id]["text"], voice, INSTRUCTIONS)

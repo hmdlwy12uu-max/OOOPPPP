@@ -17,6 +17,10 @@ export type Settings = {
   locLabel: string;
   hasLocation: boolean;
   quiet: boolean;
+  dailyMorning: boolean;
+  dailyEvening: boolean;
+  morningTime: string; // "HH:MM"
+  eveningTime: string;
 };
 
 // Default: Makkah until the user shares their location.
@@ -30,13 +34,17 @@ const DEFAULTS: Settings = {
   locLabel: "مكة المكرمة",
   hasLocation: false,
   quiet: true,
+  dailyMorning: true,
+  dailyEvening: true,
+  morningTime: "06:30",
+  eveningTime: "17:30",
 };
 
 const K = "tidhkar.";
 
 // Also used by the background task (no React there).
 export async function loadSettings(): Promise<Settings> {
-  const [master, interval, adhan, ids, lat, lng, label, has, quiet] = await Promise.all([
+  const [master, interval, adhan, ids, lat, lng, label, has, quiet, dm, de, mt, et] = await Promise.all([
     storage.getItem(K + "master", DEFAULTS.master),
     storage.getItem(K + "interval", DEFAULTS.interval),
     storage.getItem(K + "adhan", DEFAULTS.adhan),
@@ -46,6 +54,10 @@ export async function loadSettings(): Promise<Settings> {
     storage.getItem(K + "locLabel", DEFAULTS.locLabel),
     storage.getItem(K + "hasLocation", DEFAULTS.hasLocation),
     storage.getItem(K + "quiet", DEFAULTS.quiet),
+    storage.getItem(K + "dailyMorning", DEFAULTS.dailyMorning),
+    storage.getItem(K + "dailyEvening", DEFAULTS.dailyEvening),
+    storage.getItem(K + "morningTime", DEFAULTS.morningTime),
+    storage.getItem(K + "eveningTime", DEFAULTS.eveningTime),
   ]);
   return {
     master: !!master,
@@ -57,6 +69,10 @@ export async function loadSettings(): Promise<Settings> {
     locLabel: String(label),
     hasLocation: !!has,
     quiet: !!quiet,
+    dailyMorning: !!dm,
+    dailyEvening: !!de,
+    morningTime: /^\d{1,2}:\d{2}$/.test(String(mt)) ? String(mt) : DEFAULTS.morningTime,
+    eveningTime: /^\d{1,2}:\d{2}$/.test(String(et)) ? String(et) : DEFAULTS.eveningTime,
   };
 }
 

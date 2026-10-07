@@ -1,23 +1,28 @@
-import { FlatList, Pressable, StyleSheet, Switch, Text, View } from "react-native";
+import { FlatList, Pressable, Switch, Text, View } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Feather } from "@react-native-vector-icons/feather";
 
 import { ADHKAR, type Dhikr } from "@/src/adhkar";
-import { playSound, stopSound, usePlayingId } from "@/src/audio";
+import { useRouter } from "expo-router";
+
+import { playDhikr, stopSound, usePlayingId } from "@/src/audio";
 import { InfoBanner } from "@/src/components/InfoBanner";
 import { PatternHeader } from "@/src/components/PatternHeader";
 import { usesNativeTabs } from "@/src/navigation";
 import { useSettings } from "@/src/settings";
-import { colors } from "@/src/theme";
+import { makeStyles, useTheme } from "@/src/theme";
 import { alpha, fonts, radius, ROW, rtlText, spacing } from "@/src/ui";
 
 export default function AdhkarScreen() {
+  const styles = useStyles();
+  const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const bottomChrome = usesNativeTabs ? insets.bottom : 0;
   const { settings, toggleDhikr } = useSettings();
   const playing = usePlayingId();
   const count = settings.enabledIds.length;
+  const router = useRouter();
 
   return (
     <View style={styles.screen} testID="adhkar-screen">
@@ -29,17 +34,29 @@ export default function AdhkarScreen() {
       <FlatList
         data={ADHKAR}
         keyExtractor={(d) => d.id}
-        contentContainerStyle={{ padding: spacing.lg, gap: spacing.md, paddingBottom: bottomChrome + spacing.xl }}
+        contentContainerStyle={{ padding: spacing.lg, gap: spacing.md, paddingBottom: bottomChrome + 100 }}
         showsVerticalScrollIndicator={false}
         ListHeaderComponent={
-          count === 0 ? (
+          <View style={{ gap: spacing.md }}>
+            <View style={styles.daily}>
+              <Pressable onPress={() => router.push("/daily/morning")} style={styles.dailyBtn} testID="adhkar-morning">
+                <Feather name="sun" size={18} color={colors.brandPrimary} />
+                <Text style={styles.dailyText}>أذكار الصباح</Text>
+              </Pressable>
+              <Pressable onPress={() => router.push("/daily/evening")} style={styles.dailyBtn} testID="adhkar-evening">
+                <Feather name="moon" size={18} color={colors.brandPrimary} />
+                <Text style={styles.dailyText}>أذكار المساء</Text>
+              </Pressable>
+            </View>
+          {count === 0 ? (
             <InfoBanner
               testID="adhkar-empty"
               icon="alert-circle"
               title="لا توجد أذكار مفعّلة"
               body="فعّل ذكرًا واحدًا على الأقل ليصلك التذكير الدوري."
             />
-          ) : null
+          ) : null}
+          </View>
         }
         renderItem={({ item, index }) => (
           <Animated.View entering={FadeInDown.delay(70 * index).duration(400)}>
@@ -60,6 +77,8 @@ export default function AdhkarScreen() {
 type CardProps = { dhikr: Dhikr; index: number; enabled: boolean; playing: boolean; onToggle: () => void };
 
 function DhikrCard({ dhikr, index, enabled, playing, onToggle }: CardProps) {
+  const styles = useStyles();
+  const { colors } = useTheme();
   return (
     <View style={[styles.card, !enabled && { opacity: 0.6 }]} testID={`dhikr-card-${dhikr.id}`}>
       <View style={styles.top}>
@@ -79,7 +98,7 @@ function DhikrCard({ dhikr, index, enabled, playing, onToggle }: CardProps) {
       <View style={styles.bottom}>
         <Text style={styles.virtue} numberOfLines={2}>{dhikr.virtue}</Text>
         <Pressable
-          onPress={() => (playing ? stopSound() : playSound(dhikr.id))}
+          onPress={() => (playing ? stopSound() : playDhikr(dhikr.id, { title: dhikr.title, subtitle: dhikr.text }))}
           style={({ pressed }) => [styles.play, playing && styles.playActive, pressed && { transform: [{ scale: 0.96 }] }]}
           testID={`dhikr-play-${dhikr.id}`}
         >
@@ -91,8 +110,11 @@ function DhikrCard({ dhikr, index, enabled, playing, onToggle }: CardProps) {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   screen: { flex: 1, backgroundColor: colors.surface },
+  daily: { flexDirection: ROW, gap: spacing.md },
+  dailyBtn: { flex: 1, flexDirection: ROW, alignItems: "center", justifyContent: "center", gap: spacing.sm, minHeight: 52, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.brandPrimary, backgroundColor: alpha(colors.brandPrimary, 0.08) },
+  dailyText: { fontFamily: fonts.textBold, fontSize: 15, color: colors.brandPrimary },
   card: {
     backgroundColor: colors.surfaceSecondary,
     borderRadius: radius.lg,
@@ -130,4 +152,4 @@ const styles = StyleSheet.create({
   },
   playActive: { backgroundColor: colors.brandPrimary },
   playText: { fontFamily: fonts.textBold, fontSize: 14, color: colors.brandPrimary },
-});
+}));

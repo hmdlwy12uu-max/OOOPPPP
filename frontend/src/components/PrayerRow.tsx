@@ -1,13 +1,15 @@
-import { StyleSheet, Text, View } from "react-native";
+import { Text, View } from "react-native";
 import { Feather } from "@react-native-vector-icons/feather";
 
 import { formatTime12, type PrayerKey } from "../prayer";
-import { colors } from "../theme";
+import { makeStyles, useTheme } from "../theme";
 import { alpha, fonts, radius, ROW, spacing } from "../ui";
 
 type Props = { prayer: { key: PrayerKey; name: string; icon: "sunrise" | "sun" | "cloud" | "sunset" | "moon" }; time: string; active: boolean };
 
 export function PrayerRow({ prayer, time, active }: Props) {
+  const styles = useStyles();
+  const { colors } = useTheme();
   return (
     <View style={[styles.row, active && styles.active]} testID={`prayer-row-${prayer.key.toLowerCase()}`}>
       <View style={[styles.icon, active && { backgroundColor: colors.brandPrimary }]}>
@@ -22,7 +24,7 @@ export function PrayerRow({ prayer, time, active }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   row: {
     flexDirection: ROW,
     alignItems: "center",
@@ -62,4 +64,4 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   time: { fontFamily: fonts.textBold, fontSize: 17, color: colors.onSurfaceSecondary, minWidth: 80, textAlign: "left" },
-});
+}));

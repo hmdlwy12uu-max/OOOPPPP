@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Platform, Pressable, ScrollView, Text, View } from "react-native";
 import * as Haptics from "expo-haptics";
 import Animated, { useAnimatedStyle, useSharedValue, withSequence, withTiming } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -7,7 +7,7 @@ import { Feather } from "@react-native-vector-icons/feather";
 
 import { ADHKAR } from "@/src/adhkar";
 import { ScreenHeader } from "@/src/components/ScreenHeader";
-import { colors } from "@/src/theme";
+import { makeStyles, useTheme } from "@/src/theme";
 import { storage } from "@/src/utils/storage";
 import { alpha, fonts, radius, ROW, spacing, toArabicDigits } from "@/src/ui";
 
@@ -15,6 +15,8 @@ const TARGETS = [33, 99, 100];
 const todayKey = () => `tidhkar.tasbih.${new Date().toDateString()}`;
 
 export default function TasbihScreen() {
+  const styles = useStyles();
+  const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const [idx, setIdx] = useState(0);
   const [target, setTarget] = useState(33);
@@ -96,7 +98,7 @@ export default function TasbihScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   screen: { flex: 1, backgroundColor: colors.surface },
   body: { flex: 1, paddingTop: spacing.lg, gap: spacing.lg, alignItems: "center" },
   chips: { gap: spacing.sm, paddingHorizontal: spacing.lg, flexDirection: ROW, height: 56, alignItems: "center" },
@@ -158,4 +160,4 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-});
+}));

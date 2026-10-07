@@ -1,8 +1,9 @@
 import { useEffect } from "react";
 import { AppState, Platform } from "react-native";
+import { useRouter } from "expo-router";
 import * as Notifications from "expo-notifications";
 
-import { playSound, stopSound } from "../audio";
+import { playDhikr, playSound, stopForegroundOnly } from "../audio";
 import type { SoundId } from "../adhkar";
 import { cachePrayerData, registerBackgroundSync } from "../backgroundSync";
 import { usePrayerTimes } from "../prayer";
@@ -14,6 +15,7 @@ import { showToast } from "../toast";
 export function ReminderSync() {
   const { settings, ready } = useSettings();
   const { data } = usePrayerTimes();
+  const router = useRouter();
 
   useEffect(() => {
     if (data) cachePrayerData(data);
@@ -33,7 +35,7 @@ export function ReminderSync() {
     run().catch((e) => console.warn("[reminders] sync failed", e));
     const sub = AppState.addEventListener("change", (s) => {
       if (s === "active") run().catch(() => {});
-      if (s === "background") stopSound();
+      if (s === "background") stopForegroundOnly();
     });
     return () => {
       cancelled = true;
@@ -46,11 +48,20 @@ export function ReminderSync() {
     if (Platform.OS === "web") return;
     const sub = Notifications.addNotificationReceivedListener((n) => {
       const d = n.request.content.data as { soundId?: SoundId; title?: string };
-      if (d?.soundId) playSound(d.soundId);
+      if (d?.soundId) playDhikr(d.soundId, { title: d.title ?? "تذكير" });
       showToast(d?.title ?? n.request.content.title ?? "تذكير", n.request.content.body ?? undefined);
     });
-    return () => sub.remove();
-  }, []);
+    // Tapping a notification opens the matching screen (morning/evening adhkar, prayer times).
+    const resp = Notifications.addNotificationResponseReceivedListener((r) => {
+      const d = r.notification.request.content.data as { kind?: string; cat?: string };
+      if (d?.kind === "daily" && d.cat) router.push(`/daily/${d.cat}` as never);
+      else if (d?.kind === "adhan") router.push("/");
+    });
+    return () => {
+      sub.remove();
+      resp.remove();
+    };
+  }, [router]);
 
   // Web preview has no local notifications: fire the reminder in-app at each slot.
   useEffect(() => {

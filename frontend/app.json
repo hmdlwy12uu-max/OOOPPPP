@@ -1,17 +1,20 @@
 {
   "expo": {
-    "name": "تذكار",
+    "name": "أذكاري اليومية",
     "slug": "frontend",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "frontend",
-    "userInterfaceStyle": "dark",
+    "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.emergent.prayerreminderapp.juun28",
       "infoPlist": {
-        "NSLocationWhenInUseUsageDescription": "لعرض مواقيت الصلاة الدقيقة لمدينتك"
+        "NSLocationWhenInUseUsageDescription": "لعرض مواقيت الصلاة الدقيقة لمدينتك",
+        "UIBackgroundModes": [
+          "audio"
+        ]
       }
     },
     "android": {
@@ -25,7 +28,10 @@
         "ACCESS_FINE_LOCATION",
         "POST_NOTIFICATIONS",
         "VIBRATE",
-        "RECEIVE_BOOT_COMPLETED"
+        "RECEIVE_BOOT_COMPLETED",
+        "FOREGROUND_SERVICE",
+        "FOREGROUND_SERVICE_MEDIA_PLAYBACK",
+        "WAKE_LOCK"
       ]
     },
     "web": {
@@ -72,7 +78,8 @@
           "locationWhenInUsePermission": "لعرض مواقيت الصلاة الدقيقة لمدينتك"
         }
       ],
-      "expo-background-task"
+      "expo-background-task",
+      "react-native-android-widget"
     ],
     "experiments": {
       "typedRoutes": true

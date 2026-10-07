@@ -1,14 +1,16 @@
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import { Feather } from "@react-native-vector-icons/feather";
 
 import { playSound, stopSound, usePlayingId } from "../audio";
 import { timeOf, useNow } from "../prayer";
 import { nextDhikrSlots } from "../reminders";
 import { useSettings } from "../settings";
-import { colors } from "../theme";
+import { makeStyles, useTheme } from "../theme";
 import { fonts, radius, ROW, rtlText, spacing } from "../ui";
 
 export function NextDhikrCard() {
+  const styles = useStyles();
+  const { colors } = useTheme();
   const { settings } = useSettings();
   const now = useNow(15000);
   const playing = usePlayingId();
@@ -46,7 +48,7 @@ export function NextDhikrCard() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   card: {
     backgroundColor: colors.surfaceSecondary,
     borderRadius: radius.lg,
@@ -68,4 +70,4 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-});
+}));

@@ -107,3 +107,34 @@ class TestAudio:
         assert len(r.content) > 1000, "audio too small"
         # WAV magic header 'RIFF'
         assert r.content[:4] == b"RIFF", "not a valid WAV file"
+
+
+# --- Voices & narration (TTS) ---
+class TestVoices:
+    def test_list_voices(self, api):
+        r = api.get(f"{BASE_URL}/api/voices")
+        assert r.status_code == 200
+        ids = [v["id"] for v in r.json()]
+        assert "onyx" in ids and len(ids) >= 5
+
+    def test_audio_with_voice_param(self, api):
+        r = api.get(f"{BASE_URL}/api/audio/salawat.wav", params={"voice": "echo"}, timeout=120)
+        assert r.status_code == 200
+        assert r.headers["content-type"].startswith("audio/wav")
+        assert len(r.content) > 10_000
+
+    def test_tts_narration_roundtrip(self, api):
+        r = api.post(f"{BASE_URL}/api/tts", json={"text": "الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِين", "voice": "fable"}, timeout=120)
+        assert r.status_code == 200
+        url = r.json()["url"]
+        assert url.startswith("/api/tts/fable/")
+        r2 = api.get(f"{BASE_URL}{url}")
+        assert r2.status_code == 200 and len(r2.content) > 10_000
+
+    def test_tts_rejects_empty(self, api):
+        r = api.post(f"{BASE_URL}/api/tts", json={"text": "", "voice": "onyx"})
+        assert r.status_code == 422
+
+    def test_tts_unknown_file_404(self, api):
+        r = api.get(f"{BASE_URL}/api/tts/onyx/doesnotexist.wav")
+        assert r.status_code == 404

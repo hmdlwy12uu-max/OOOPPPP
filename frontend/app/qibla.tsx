@@ -9,7 +9,7 @@ import { Feather } from "@react-native-vector-icons/feather";
 import { InfoBanner } from "@/src/components/InfoBanner";
 import { ScreenHeader } from "@/src/components/ScreenHeader";
 import { useSettings, type LocationResult } from "@/src/settings";
-import { colors } from "@/src/theme";
+import { makeStyles, useTheme } from "@/src/theme";
 import { alpha, fonts, radius, spacing, toArabicDigits } from "@/src/ui";
 
 const KAABA = { lat: 21.422487, lng: 39.826206 };
@@ -35,6 +35,8 @@ function distanceKm(lat: number, lng: number) {
 const DIAL = 290;
 
 export default function QiblaScreen() {
+  const styles = useStyles();
+  const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const { settings, requestLocation } = useSettings();
   const [heading, setHeading] = useState<number | null>(null);
@@ -154,6 +156,7 @@ export default function QiblaScreen() {
 }
 
 function Stat({ label, value, testID }: { label: string; value: string; testID: string }) {
+  const styles = useStyles();
   return (
     <View style={styles.stat}>
       <Text style={styles.statValue} testID={testID}>{value}</Text>
@@ -162,7 +165,7 @@ function Stat({ label, value, testID }: { label: string; value: string; testID: 
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   screen: { flex: 1, backgroundColor: colors.surface },
   body: { flex: 1, padding: spacing.lg, gap: spacing.lg, alignItems: "stretch" },
   status: { fontFamily: fonts.displayBold, fontSize: 22, color: colors.onSurface, textAlign: "center", marginTop: spacing.sm },
@@ -188,12 +191,12 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surfaceSecondary,
   },
   dialAligned: { borderColor: colors.brandPrimary, backgroundColor: alpha(colors.brandSecondary, 0.4) },
-  cardinalWrap: { ...StyleSheet.absoluteFillObject, alignItems: "center", paddingTop: 22 },
+  cardinalWrap: { ...StyleSheet.absoluteFill, alignItems: "center", paddingTop: 22 },
   cardinal: { fontFamily: fonts.textBold, fontSize: 18, color: colors.onSurfaceSecondary },
-  tickWrap: { ...StyleSheet.absoluteFillObject, alignItems: "center" },
+  tickWrap: { ...StyleSheet.absoluteFill, alignItems: "center" },
   tick: { width: 1, height: 8, backgroundColor: colors.borderStrong, marginTop: 4 },
   tickMajor: { height: 14, width: 2, backgroundColor: colors.muted },
-  kaabaWrap: { ...StyleSheet.absoluteFillObject, alignItems: "center" },
+  kaabaWrap: { ...StyleSheet.absoluteFill, alignItems: "center" },
   kaabaLine: { position: "absolute", top: 60, height: DIAL / 2 - 60, width: 2, backgroundColor: colors.brandPrimary },
   kaaba: {
     marginTop: 22,
@@ -228,4 +231,4 @@ const styles = StyleSheet.create({
   statLabel: { fontFamily: fonts.text, fontSize: 12, color: colors.muted },
   calib: { flexDirection: "row-reverse", gap: spacing.sm, alignItems: "center" },
   calibText: { flex: 1, fontFamily: fonts.text, fontSize: 12, color: colors.warning, textAlign: "right" },
-});
+}));

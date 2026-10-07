@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
-import { FlatList, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { FlatList, Pressable, Text, TextInput, View } from "react-native";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Feather } from "@react-native-vector-icons/feather";
@@ -7,16 +7,20 @@ import { Feather } from "@react-native-vector-icons/feather";
 import { PatternHeader } from "@/src/components/PatternHeader";
 import { usesNativeTabs } from "@/src/navigation";
 import { getLastRead, getSurahs, normalizeArabic, TANZIL_CREDIT, type Surah } from "@/src/quran";
-import { colors } from "@/src/theme";
+import { khatmaStats, useKhatma } from "@/src/stores";
+import { makeStyles, useTheme } from "@/src/theme";
 import { fonts, radius, ROW, rtlText, spacing, toArabicDigits } from "@/src/ui";
 
 export default function QuranScreen() {
+  const styles = useStyles();
+  const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const bottomChrome = usesNativeTabs ? insets.bottom : 0;
   const router = useRouter();
   const [q, setQ] = useState("");
   const [last, setLast] = useState<{ surah: number; ayah: number } | null>(null);
   const surahs = getSurahs();
+  const khatma = useKhatma();
 
   useFocusEffect(
     useCallback(() => {
@@ -54,6 +58,16 @@ export default function QuranScreen() {
             </Pressable>
           ) : null}
         </View>
+        <View style={styles.quick}>
+          <Pressable onPress={() => router.push("/search")} style={styles.quickBtn} testID="quran-ayah-search">
+            <Feather name="file-text" size={16} color={colors.brandPrimary} />
+            <Text style={styles.quickText}>البحث في الآيات</Text>
+          </Pressable>
+          <Pressable onPress={() => router.push("/khatma")} style={styles.quickBtn} testID="quran-khatma">
+            <Feather name="target" size={16} color={colors.brandPrimary} />
+            <Text style={styles.quickText}>ختمتي {toArabicDigits(String(khatmaStats(khatma).pct))}٪</Text>
+          </Pressable>
+        </View>
       </View>
       <FlatList
         data={list}
@@ -61,7 +75,7 @@ export default function QuranScreen() {
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="on-drag"
         initialNumToRender={20}
-        contentContainerStyle={{ paddingHorizontal: spacing.lg, gap: spacing.sm, paddingBottom: bottomChrome + spacing.xl }}
+        contentContainerStyle={{ paddingHorizontal: spacing.lg, gap: spacing.sm, paddingBottom: bottomChrome + 100 }}
         ListHeaderComponent={
           last && !q ? (
             <Pressable onPress={() => open(last.surah, last.ayah)} style={styles.resume} testID="quran-continue-reading">
@@ -85,6 +99,8 @@ export default function QuranScreen() {
 }
 
 function SurahRow({ s, onPress }: { s: Surah; onPress: () => void }) {
+  const styles = useStyles();
+  const { colors } = useTheme();
   return (
     <Pressable
       onPress={onPress}
@@ -105,9 +121,12 @@ function SurahRow({ s, onPress }: { s: Surah; onPress: () => void }) {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   screen: { flex: 1, backgroundColor: colors.surface },
-  searchWrap: { paddingHorizontal: spacing.lg, paddingBottom: spacing.md },
+  searchWrap: { paddingHorizontal: spacing.lg, paddingBottom: spacing.md, gap: spacing.sm },
+  quick: { flexDirection: ROW, gap: spacing.sm },
+  quickBtn: { flex: 1, flexDirection: ROW, alignItems: "center", justifyContent: "center", gap: spacing.xs, minHeight: 40, borderRadius: radius.pill, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surfaceSecondary },
+  quickText: { fontFamily: fonts.textMedium, fontSize: 13, color: colors.brandPrimary },
   search: {
     flexDirection: ROW,
     alignItems: "center",
@@ -158,4 +177,4 @@ const styles = StyleSheet.create({
   en: { fontFamily: fonts.text, fontSize: 12, color: colors.muted },
   empty: { ...rtlText, fontFamily: fonts.text, fontSize: 14, color: colors.muted, padding: spacing.xl, textAlign: "center" },
   credit: { fontFamily: fonts.text, fontSize: 11, color: colors.muted, textAlign: "center", marginTop: spacing.lg, lineHeight: 18 },
-});
+}));

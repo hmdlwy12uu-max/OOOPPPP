@@ -1,13 +1,15 @@
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Feather } from "@react-native-vector-icons/feather";
 
-import { colors } from "../theme";
+import { makeStyles, useTheme } from "../theme";
 import { fonts, ROW, spacing } from "../ui";
 
 // Header for stack screens (outside tabs): back on the right for RTL.
 export function ScreenHeader({ title, subtitle }: { title: string; subtitle?: string }) {
+  const styles = useStyles();
+  const { colors } = useTheme();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   return (
@@ -29,7 +31,7 @@ export function ScreenHeader({ title, subtitle }: { title: string; subtitle?: st
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   header: {
     flexDirection: ROW,
     alignItems: "center",
@@ -42,4 +44,4 @@ const styles = StyleSheet.create({
   back: { width: 44, height: 44, alignItems: "center", justifyContent: "center" },
   title: { fontFamily: fonts.ruqaa, fontSize: 26, lineHeight: 46, color: colors.brandPrimary },
   sub: { fontFamily: fonts.text, fontSize: 12, color: colors.muted },
-});
+}));

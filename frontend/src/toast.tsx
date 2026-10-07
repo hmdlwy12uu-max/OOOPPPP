@@ -1,10 +1,10 @@
 import { useSyncExternalStore } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Text, View } from "react-native";
 import Animated, { FadeInUp, FadeOutUp } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Feather } from "@react-native-vector-icons/feather";
 
-import { colors } from "./theme";
+import { makeStyles, useTheme } from "./theme";
 import { alpha, fonts, radius, ROW, rtlText, spacing } from "./ui";
 
 type Toast = { key: number; title: string; body?: string };
@@ -24,6 +24,8 @@ export function showToast(title: string, body?: string) {
 }
 
 export function ToastHost() {
+  const styles = useStyles();
+  const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const toast = useSyncExternalStore(
     (l) => {
@@ -49,7 +51,7 @@ export function ToastHost() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   wrap: { position: "absolute", left: spacing.lg, right: spacing.lg, zIndex: 100 },
   toast: {
     flexDirection: ROW,
@@ -71,4 +73,4 @@ const styles = StyleSheet.create({
   },
   title: { ...rtlText, fontFamily: fonts.displayBold, fontSize: 20, color: colors.brandPrimary },
   body: { ...rtlText, fontFamily: fonts.text, fontSize: 13, color: colors.onSurfaceSecondary },
-});
+}));

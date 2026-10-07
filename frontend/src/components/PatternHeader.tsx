@@ -3,13 +3,15 @@ import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { colors } from "../theme";
+import { makeStyles, useTheme } from "../theme";
 import { alpha, fonts, rtlText, spacing } from "../ui";
 
 const PATTERN =
   "https://images.unsplash.com/photo-1773903181852-78d3fdf1aa81?crop=entropy&cs=srgb&fm=jpg&w=1000&q=80";
 
 export function PatternHeader({ title, subtitle, testID }: { title: string; subtitle?: string; testID?: string }) {
+  const styles = useStyles();
+  const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   return (
     <View style={[styles.wrap, { paddingTop: insets.top + spacing.lg }]} testID={testID}>
@@ -24,8 +26,8 @@ export function PatternHeader({ title, subtitle, testID }: { title: string; subt
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   wrap: { paddingHorizontal: spacing.xl, paddingBottom: spacing.lg, overflow: "hidden" },
   title: { ...rtlText, fontFamily: fonts.ruqaa, fontSize: 36, lineHeight: 60, color: colors.brandPrimary },
   subtitle: { ...rtlText, fontFamily: fonts.text, fontSize: 14, color: colors.onSurfaceTertiary },
-});
+}));

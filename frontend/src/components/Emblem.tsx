@@ -1,11 +1,13 @@
-import { StyleSheet, Text, View } from "react-native";
+import { Text, View } from "react-native";
 import { Feather } from "@react-native-vector-icons/feather";
 
-import { colors } from "../theme";
+import { makeStyles, useTheme } from "../theme";
 import { alpha, fonts, ROW, spacing } from "../ui";
 
 // App mark: gold crescent seal + "تذكار" in Ruq'ah calligraphy.
 export function Emblem() {
+  const styles = useStyles();
+  const { colors } = useTheme();
   return (
     <View style={styles.row} testID="app-emblem">
       <View style={styles.seal}>
@@ -13,12 +15,12 @@ export function Emblem() {
           <Feather name="moon" size={18} color={colors.brandPrimary} />
         </View>
       </View>
-      <Text style={styles.name}>تذكار</Text>
+      <Text style={styles.name}>أذكاري اليومية</Text>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   row: { flexDirection: ROW, alignItems: "center", gap: spacing.sm },
   seal: {
     width: 44,
@@ -32,5 +34,5 @@ const styles = StyleSheet.create({
     backgroundColor: alpha(colors.surface, 0.5),
   },
   sealInner: { transform: [{ rotate: "-45deg" }] },
-  name: { fontFamily: fonts.ruqaa, fontSize: 30, color: colors.brandPrimary, lineHeight: 52 },
-});
+  name: { fontFamily: fonts.ruqaa, fontSize: 22, color: colors.brandPrimary, lineHeight: 40 },
+}));

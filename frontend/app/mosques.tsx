@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ActivityIndicator, FlatList, Linking, Platform, Pressable, RefreshControl, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, FlatList, Linking, Platform, Pressable, RefreshControl, Text, View } from "react-native";
 import { useQuery } from "@tanstack/react-query";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Feather } from "@react-native-vector-icons/feather";
@@ -7,7 +7,7 @@ import { Feather } from "@react-native-vector-icons/feather";
 import { InfoBanner } from "@/src/components/InfoBanner";
 import { ScreenHeader } from "@/src/components/ScreenHeader";
 import { useSettings, type LocationResult } from "@/src/settings";
-import { colors } from "@/src/theme";
+import { makeStyles, useTheme } from "@/src/theme";
 import { fonts, radius, ROW, rtlText, spacing, toArabicDigits } from "@/src/ui";
 
 type Mosque = { id: string; name: string; lat: number; lng: number; distance_m: number };
@@ -28,6 +28,8 @@ async function openDirections(m: Mosque) {
 }
 
 export default function MosquesScreen() {
+  const styles = useStyles();
+  const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const { settings, requestLocation } = useSettings();
   const [loc, setLoc] = useState<LocationResult | "loading">("loading");
@@ -114,6 +116,8 @@ export default function MosquesScreen() {
 }
 
 function MosqueRow({ m, nearest }: { m: Mosque; nearest: boolean }) {
+  const styles = useStyles();
+  const { colors } = useTheme();
   return (
     <View style={[styles.row, nearest && styles.nearest]} testID={`mosque-row-${m.id}`}>
       <View style={styles.icon}>
@@ -138,7 +142,7 @@ function MosqueRow({ m, nearest }: { m: Mosque; nearest: boolean }) {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   screen: { flex: 1, backgroundColor: colors.surface },
   center: { flex: 1, alignItems: "center", justifyContent: "center", gap: spacing.md },
   centerText: { fontFamily: fonts.text, fontSize: 14, color: colors.muted },
@@ -175,4 +179,4 @@ const styles = StyleSheet.create({
   },
   goText: { fontFamily: fonts.textBold, fontSize: 13, color: colors.onBrandPrimary },
   credit: { fontFamily: fonts.text, fontSize: 11, color: colors.muted, textAlign: "center", marginTop: spacing.md },
-});
+}));
